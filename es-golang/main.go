@@ -14,7 +14,7 @@ func main() {
 		fmt.Printf("%s\n", err.Error())
 	}
 
-	callAliasIndex(client)
+	callGetIndexInfo(client)
 }
 
 func callCreateIndex(client *elastic.Client) {
@@ -96,5 +96,21 @@ func callAliasIndex(client *elastic.Client) {
 	err := es_operate.AliasIndex(context.Background(), indexName, aliasName, client)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callGetIndexInfo(client *elastic.Client) {
+	indexName := "hamlet-1"
+	indexInfo, err := es_operate.GetIndexInfo(context.Background(), indexName, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	for index, info := range indexInfo {
+		fmt.Printf("Index: %s\n", index)
+		fmt.Printf("Aliases: %v\n", info.Aliases)
+		fmt.Printf("Mappings: %v\n", info.Mappings)
+		fmt.Printf("Settings: %v\n", info.Settings)
 	}
 }
