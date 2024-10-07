@@ -59,4 +59,3 @@ root@es-node-1:~# systemctl start kibana.service
 root@es-node-1:~# systemctl enable kibana
 Created symlink /etc/systemd/system/multi-user.target.wants/kibana.service → /lib/systemd/system/kibana.service.
 ```
-
