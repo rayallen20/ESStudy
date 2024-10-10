@@ -26,3 +26,38 @@ func AliasIndex(ctx context.Context, name string, alias string, client *elastic.
 	fmt.Printf("Alias %s was created for Index %s\n", alias, name)
 	return nil
 }
+
+func AliasWriteableIndex(ctx context.Context, name string, alias string, client *elastic.Client) error {
+	aliasAction := elastic.NewAliasAddAction(alias).Index(name).IsWriteIndex(true)
+
+	aliasIndex, err := client.Alias().Action(aliasAction).Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	if !aliasIndex.Acknowledged {
+		msg := fmt.Sprintf("Alias %s was not created for Index %s", alias, name)
+		return errors.New(msg)
+	}
+
+	fmt.Printf("Alias %s successfully updated. Index %s is now the write index\n", alias, name)
+	return nil
+}
+
+func GetAliasIndex(ctx context.Context, client *elastic.Client, alias string) (*elastic.AliasesResult, error) {
+	aliasesResult, err := client.Aliases().Alias(alias).Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for indexName, indexResult := range aliasesResult.Indices {
+		fmt.Printf("Index: %s\n", indexName)
+
+		// 一个索引可能有多个别名 因此 indexResult.Aliases 是一个slice
+		for _, info := range indexResult.Aliases {
+			fmt.Printf("Alias name: %s, Is write index: %v\n", info.AliasName, info.IsWriteIndex)
+		}
+	}
+
+	return aliasesResult, nil
+}

@@ -14,11 +14,11 @@ func main() {
 		fmt.Printf("%s\n", err.Error())
 	}
 
-	callGetIndexInfo(client)
+	callGetAliasIndex(client)
 }
 
 func callCreateIndex(client *elastic.Client) {
-	indexName := "my_test_index_1"
+	indexName := "my_logs_202410"
 	err := es_operate.CreateIndex(context.Background(), indexName, client)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
@@ -91,8 +91,8 @@ func callCleanIndex(client *elastic.Client) {
 }
 
 func callAliasIndex(client *elastic.Client) {
-	indexName := "my_test_index_1"
-	aliasName := "my_test_index_1_alias"
+	indexName := "my_logs_202410"
+	aliasName := "my_logs"
 	err := es_operate.AliasIndex(context.Background(), indexName, aliasName, client)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
@@ -112,5 +112,75 @@ func callGetIndexInfo(client *elastic.Client) {
 		fmt.Printf("Aliases: %v\n", info.Aliases)
 		fmt.Printf("Mappings: %v\n", info.Mappings)
 		fmt.Printf("Settings: %v\n", info.Settings)
+	}
+}
+
+func callSearchMultiIndices(client *elastic.Client) {
+	indices := []string{"my_logs_202409", "my_logs_202410"}
+	indicesDoc, err := es_operate.SearchMultiIndices(context.Background(), client, indices)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	for _, hit := range indicesDoc.Hits.Hits {
+		fmt.Printf("DocumentId: %s, Source: %s\n", hit.Id, hit.Source)
+	}
+}
+
+func callSearchMultiIndicesByExp(client *elastic.Client) {
+	indicesExp := "my_logs*"
+	indicesDoc, err := es_operate.SearchMultiIndicesByExp(context.Background(), client, indicesExp)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	for _, hit := range indicesDoc.Hits.Hits {
+		fmt.Printf("DocumentId: %s, Source: %s\n", hit.Id, hit.Source)
+	}
+}
+
+func callSearchIndex(client *elastic.Client) {
+	name := "my_logs"
+	indicesDoc, err := es_operate.SearchIndex(context.Background(), client, name)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+
+	for _, hit := range indicesDoc.Hits.Hits {
+		fmt.Printf("DocumentId: %s, Source: %s\n", hit.Id, hit.Source)
+	}
+}
+
+func callInsertDoc(client *elastic.Client) {
+	name := "my_logs"
+	doc := map[string]interface{}{
+		"index": struct{}{},
+		"title": "001",
+	}
+
+	_, err := es_operate.InsertDoc(context.Background(), client, name, doc)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
+	}
+}
+
+func callAliasWriteableIndex(client *elastic.Client) {
+	name := "my_logs_202409"
+	alias := "my_logs"
+	err := es_operate.AliasWriteableIndex(context.Background(), name, alias, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callGetAliasIndex(client *elastic.Client) {
+	alias := "my_logs"
+	_, err := es_operate.GetAliasIndex(context.Background(), client, alias)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
 	}
 }
