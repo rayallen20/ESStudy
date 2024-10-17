@@ -14,7 +14,7 @@ func main() {
 		fmt.Printf("%s\n", err.Error())
 	}
 
-	callGetAliasIndex(client)
+	callInsertDocWithId(client)
 }
 
 func callCreateIndex(client *elastic.Client) {
@@ -182,5 +182,188 @@ func callGetAliasIndex(client *elastic.Client) {
 	_, err := es_operate.GetAliasIndex(context.Background(), client, alias)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callCreateTemplate(client *elastic.Client) {
+	name := "template_1"
+	body := map[string]interface{}{
+		"index_patterns": []string{
+			"te*",
+			"bar*",
+		},
+		"template": map[string]interface{}{
+			"aliases": map[string]interface{}{
+				"alias1": struct{}{},
+			},
+
+			"settings": map[string]interface{}{
+				"number_of_shards": 1,
+			},
+
+			"mappings": map[string]interface{}{
+				"_source": map[string]interface{}{
+					"enabled": false,
+				},
+
+				"properties": map[string]interface{}{
+					"host_name": map[string]interface{}{
+						"type": "keyword",
+					},
+
+					"created_at": map[string]interface{}{
+						"type":   "date",
+						"format": "EEE MMM dd HH:mm:ss Z yyyy",
+					},
+				},
+			},
+		},
+	}
+	err := es_operate.CreateTemplate(context.Background(), name, body, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callMappingCreateComponent(client *elastic.Client) {
+	name := "component_mapping_template"
+	body := map[string]interface{}{
+		"template": map[string]interface{}{
+			"mappings": map[string]interface{}{
+				"properties": map[string]interface{}{
+					"@timestamp": map[string]interface{}{
+						"type": "date",
+					},
+
+					"host_name": map[string]interface{}{
+						"type": "keyword",
+					},
+
+					"created_at": map[string]interface{}{
+						"type":   "date",
+						"format": "EEE MMM dd HH:mm:ss Z yyyy",
+					},
+				},
+			},
+		},
+	}
+	err := es_operate.CreateComponent(context.Background(), name, body, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callSettingCreateComponent(client *elastic.Client) {
+	name := "component_setting_template"
+	body := map[string]interface{}{
+		"template": map[string]interface{}{
+			"settings": map[string]interface{}{
+				"number_of_shards": 3,
+			},
+
+			"aliases": map[string]interface{}{
+				"myData": struct{}{},
+			},
+		},
+	}
+	err := es_operate.CreateComponent(context.Background(), name, body, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func createTemplateBaseOnComponent(client *elastic.Client) {
+	name := "my_data_template"
+	body := map[string]interface{}{
+		"index_patterns": []string{
+			"my_data*",
+		},
+
+		"priority": 500,
+
+		"composed_of": []string{
+			"component_mapping_template",
+			"component_setting_template",
+		},
+
+		"version": 1,
+
+		"_meta": map[string]interface{}{
+			"description": "My custom template",
+		},
+	}
+	err := es_operate.CreateTemplate(context.Background(), name, body, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callSearchTemplate(client *elastic.Client) {
+	name := "template_1"
+	err := es_operate.SearchTemplate(context.Background(), name, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callDeleteTemplate(client *elastic.Client) {
+	name := "template_1"
+	err := es_operate.DeleteTemplate(context.Background(), name, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func dynamicTemplate(client *elastic.Client) {
+	name := "sample_dynamic_template"
+
+	body := map[string]interface{}{
+		"index_patterns": []string{
+			"sample*",
+		},
+
+		"template": map[string]interface{}{
+			"mappings": map[string]interface{}{
+				"dynamic_templates": []map[string]interface{}{
+					{
+						"handle_integers": map[string]interface{}{ // handle_integers: 动态模板名称
+							"match_mapping_type": "long", // match_mapping_type: 被匹配的、待重新指定的源数据类型
+							"mapping": map[string]interface{}{ // mapping: 重新指定的目标数据类型
+								"type": "integer",
+							},
+						},
+					},
+
+					{
+						"handle_date": map[string]interface{}{
+							"match": "date_*", // match: 匹配字段名的通配符
+							"mapping": map[string]interface{}{ // mapping: 重新指定的目标数据类型
+								"type": "date",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := es_operate.CreateTemplate(context.Background(), name, body, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
+}
+
+func callInsertDocWithId(client *elastic.Client) {
+	name := "sample_index"
+	doc := map[string]interface{}{
+		"iValue":            123,
+		"date_current_time": "1574494620000",
+	}
+	id := "1"
+
+	_, err := es_operate.InsertDocWithId(context.Background(), id, name, doc, client)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+		return
 	}
 }
