@@ -354,10 +354,32 @@ func dynamicTemplate(client *elastic.Client) {
 }
 
 func callInsertDocWithId(client *elastic.Client) {
-	name := "sample_index"
+	name := "my_index_0501" // 该Index事前在ES中并不存在 但是可以自动创建
 	doc := map[string]interface{}{
-		"iValue":            123,
-		"date_current_time": "1574494620000",
+		"media_array": []string{ // String类型的Array
+			"新闻",
+			"论坛",
+			"博客",
+			"电子报",
+		},
+		"users_array": []struct { // Object类型的Array
+			Name string
+			Age  int
+		}{
+			{
+				Name: "Mary",
+				Age:  12,
+			},
+			{
+				Name: "John",
+				Age:  10,
+			},
+		},
+		"size_array": []int{ // long类型的Array
+			0,
+			50,
+			100,
+		},
 	}
 	id := "1"
 
